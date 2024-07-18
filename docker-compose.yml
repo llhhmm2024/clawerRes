@@ -1,0 +1,10 @@
+services:
+  myservice:
+    container_name: crawler
+    restart: unless-stopped
+    hostname: crawler
+    build: .
+    volumes:
+      - /etc/timezone:/etc/timezone
+      - /etc/localtime:/etc/localtime
+      - /storage:/storage

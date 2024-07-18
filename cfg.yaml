@@ -1,0 +1,52 @@
+db:
+  host: "10.0.0.12"
+  user: "root"
+  password: "UnixCrazy20!#"
+  # dbname: "VodSea_dev"
+  dbname: "VodSea"
+  port: "3306"
+  charset: "charset=utf8mb4&parseTime=True&loc=Local"
+  debug: false # 是否开启日志
+  dry_run: false # 是否开启 dry_run 模式
+  max_idle_conns: 10
+  max_open_conns: 100
+
+jobs:
+  # 是否要开启任务，
+  # state: 1 开启，0 关闭
+  # model: 更新频率 full 全量, incr 增量, all 增量+全量
+  - name: "yzzy"
+    state: "1"
+    model: "all"
+    page: 2
+  - name: "ffzy"
+    state: "1"
+    model: "all"
+    page: 2
+
+yzzy:
+  - 83 #短剧
+  - 1 #电影
+  - 2 #电视剧
+  - 3 # 动漫
+  - 4 # 综艺
+
+# 根据各个站点是否开启配置
+ffzy:
+  - 1 # 电影
+  - 2 # 电视剧
+  - 4 # 动漫
+  - 3 # 综艺
+
+# 是否开启下载器
+# state: 1 开启，0 关闭
+downloader: 1
+
+# 控制并发下载
+max_concurrent: 4
+
+# 代理
+proxy: socks5://172.28.0.1:5678
+
+# 保存目录
+save_dir: /storage
