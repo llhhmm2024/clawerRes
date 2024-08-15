@@ -17,12 +17,14 @@ jobs:
   # model: 更新频率 full 全量, incr 增量, all 增量+全量
   - name: "yzzy"
     state: "1"
-    model: "all"
+    model: "full"
     page: 2
+    overwrite: 1
   - name: "ffzy"
     state: "1"
-    model: "all"
+    model: "full"
     page: 2
+    overwrite: 1
 
 yzzy:
   - 83 #短剧

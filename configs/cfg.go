@@ -27,10 +27,11 @@ func (m *Mysql) Dsn() string {
 }
 
 type Jobs struct {
-	Name  string `json:"name"`
-	State string `json:"state"`
-	Model string `json:"model"`
-	Page  int    `json:"page"`
+	Name      string `json:"name"`
+	State     string `json:"state"`
+	Model     string `json:"model"`
+	Page      int    `json:"page"`
+	OverWrite int    `json:"overwrite"`
 }
 
 type config struct {

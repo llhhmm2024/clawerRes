@@ -7,7 +7,7 @@ import (
 )
 
 var AutoCmd = &cobra.Command{
-	Use:   "auto",
+	Use:   "manual",
 	Short: "手动同步任务",
 	Long:  `手动同步`,
 	Run: func(cmd *cobra.Command, args []string) {

@@ -36,45 +36,37 @@ func DoMysql(videoData model.TblVideo, singleVideo []*model.TblSingleVideo) {
 	videoData.EpisodeUpdateTime = now
 
 	// 更新参数
-	// vals := []string{"name", "name_spell", "state", "video_type", "video_num", "screen_year", "screen_time", "pic_w",
-	// 	"current_episode", "episode_status", "area_name", "play_link", "sub_title", "extend_id", "description",
-	// 	"tags_name", "category_name", "director_name", "actor_name"}
-	// err := db.Clauses(clause.OnConflict{
-	// 	Columns:   []clause.Column{{Name: "id"}},
-	// 	DoUpdates: clause.AssignmentColumns(vals),
-	// }).Create(&videoData).Error
-	// if err != nil {
-	// 	fmt.Println("insert video: ", err)
-	// }
-	insertOrUpdateVideo(videoData)
-	video := make(map[string]interface{})
-	query := map[string]interface{}{"extend_id": videoData.ExtendId, "source": videoData.Source}
-	rows := db.Table("tbl_video").Select("id").Where(query).Find(&video).RowsAffected
-	if rows != 0 {
-		var group []model.TblSingleVideo
-		vid := video["id"].(uint64)
-		for _, single := range singleVideo {
-			single.VideoID = vid
-			single.State = 1
-			single.CreateTime = now
-			single.UpdateTime = now
-			single.GlobalVid = utils.GenerateUuid()
-			group = append(group, *single)
+	if err := insertOrUpdateVideo(videoData); err == nil {
+		video := make(map[string]interface{})
+		query := map[string]interface{}{"extend_id": videoData.ExtendId, "source": videoData.Source}
+		rows := db.Table("tbl_video").Select("id").Where(query).Find(&video).RowsAffected
+		if rows != 0 {
+			var group []model.TblSingleVideo
+			vid := video["id"].(uint64)
+			for _, single := range singleVideo {
+				single.VideoID = vid
+				single.State = 1
+				single.CreateTime = now
+				single.UpdateTime = now
+				single.GlobalVid = utils.GenerateUuid()
+				group = append(group, *single)
+			}
+			insertOrUpdate(group)
 		}
-		insertOrUpdate(group)
 	}
 }
 
 // 插入 video 数据
-func insertOrUpdateVideo(videoData model.TblVideo) {
+func insertOrUpdateVideo(videoData model.TblVideo) error {
 	var existData model.TblVideo
 	err := db.Model(&model.TblVideo{}).Where("extend_id = ? AND source = ?",
 		videoData.ExtendId, videoData.Source).First(&existData).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		if err := db.Create(&videoData).Error; err != nil {
 			fmt.Println("insert video err: ", err)
+			return err
 		}
-	} else if existData.PlayLink != videoData.PlayLink || existData.State != videoData.State ||
+	} else if existData.PlayLink != videoData.PlayLink ||
 		existData.Name != videoData.Name || existData.NameSpell != videoData.NameSpell ||
 		existData.ScreenYear != videoData.ScreenYear || existData.AreaName != videoData.AreaName ||
 		existData.ScreenTime != videoData.ScreenTime || existData.PicW != videoData.PicW ||
@@ -86,8 +78,10 @@ func insertOrUpdateVideo(videoData model.TblVideo) {
 		videoData.ID = existData.ID
 		if err := db.Updates(&videoData).Error; err != nil {
 			fmt.Println("update video err: ", err)
+			return err
 		}
 	}
+	return nil
 }
 
 // 插入singleVideo数据
@@ -104,7 +98,7 @@ func insertOrUpdate(group []model.TblSingleVideo) {
 				transaction.Rollback()
 				fmt.Println("single insert err: ", err)
 			}
-		} else if existData.PlayLink != item.PlayLink || existData.State != item.State ||
+		} else if existData.PlayLink != item.PlayLink ||
 			existData.Episode != item.Episode || existData.Type != item.Type ||
 			existData.VideoName != item.VideoName || existData.Name != item.Name ||
 			existData.SourcePlaySchema != item.SourcePlaySchema {

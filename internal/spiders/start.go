@@ -93,7 +93,9 @@ func (m *Media) start(baseUrl string, wg *sync.WaitGroup, sem chan struct{}) {
 // 指定 Video_id 入库
 func (m *Media) SpecialId() {
 	for _, v := range test() {
-		pipelines.Parse(fmt.Sprintf("https://api.1080zyku.com/inc/api_mac10.php?ac=detail&ids=%s", v))
+		pipelines.Parse("http://api.ffzyapi.com/api.php/provide/vod/?ac=detail&ids=68593")
+		fmt.Println(v)
+		// pipelines.Parse(fmt.Sprintf("https://api.1080zyku.com/inc/api_mac10.php?ac=detail&ids=%s", v))
 	}
 }
 
@@ -103,8 +105,8 @@ func (m *Media) SpecialId() {
 
 func test() []string {
 	alist := []string{
-		"33283",
+		"56926",
 	}
-	alist = []string{"55325"}
+	// alist = []string{"55325"}
 	return alist
 }

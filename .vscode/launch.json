@@ -18,9 +18,9 @@
             //     "${workspaceFolder}/storage"
             // ],
             "args": [
-                "special"
+                // "special"
                 // "jobs"
-                // "auto"
+                "manual"
             ]
         }
     ]

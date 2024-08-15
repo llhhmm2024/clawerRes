@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crawler/configs"
+	"crawler/global"
 	"crawler/internal/model"
 	"crawler/internal/utils"
 	"crawler/internal/utils/http"
@@ -11,9 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
-	"sort"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -75,7 +73,12 @@ func DownloadM3u8File(single *model.TblSingleVideo, wg *sync.WaitGroup, sem chan
 	} else {
 		tslist = newm3u8
 	}
-	allTs := filterAd(string(tslist))
+	var allTs []string
+	if single.Source == global.Ffzy_Source {
+		allTs = filterAdSecond(tslist)
+	} else {
+		allTs = filterAd(string(tslist))
+	}
 	if len(allTs) > 0 {
 		m3u8file := writeLines(PlayLink, "index.m3u8", allTs)
 		single.PlayLink = m3u8file
@@ -98,35 +101,75 @@ func filter(m3u8 string) string {
 
 // 过滤广告
 func filterAd(m3u8 string) []string {
-	re := regexp.MustCompile(`\d+.ts`)
-	matches := re.FindAllString(m3u8, -1)
-	allnumbers := []int{}
-
-	for _, name := range matches {
-		numbers := regexp.MustCompile(`\d+`).FindAllString(name, 2)
-		prefix := numbers[0]
-		currentNum, _ := strconv.Atoi(prefix)
-		allnumbers = append(allnumbers, currentNum)
+	var length int
+	list := strings.Split(m3u8, "\n")
+	var newTs []string
+	// var tmp int
+	for _, line := range list {
+		if length == 0 {
+			if strings.Contains(line, ".ts") {
+				length = len(line)
+			} else {
+				newTs = append(newTs, line)
+			}
+		}
+		if length != 0 {
+			if strings.Contains(line, ".ts") && length != len(line) {
+				newTs = newTs[:len(newTs)-1]
+				continue
+			}
+			newTs = append(newTs, line)
+		}
 	}
+	return newTs
+	// re := regexp.MustCompile(`\d+.ts`)
+	// matches := re.FindAllString(m3u8, -1)
+	// allnumbers := []int{}
 
-	sort.IntSlice(allnumbers).Sort()
-	tmp := 0
-	filterNum := []string{}
-	for i, n := range allnumbers {
-		if i == 0 {
-			tmp = n
+	// for _, name := range matches {
+	// 	numbers := regexp.MustCompile(`\d+`).FindAllString(name, 2)
+	// 	prefix := numbers[0]
+	// 	currentNum, _ := strconv.Atoi(prefix)
+	// 	allnumbers = append(allnumbers, currentNum)
+	// }
+
+	// sort.IntSlice(allnumbers).Sort()
+	// tmp = 0
+	// filterNum := []string{}
+	// for i, n := range allnumbers {
+	// 	if i == 0 {
+	// 		tmp = n
+	// 		continue
+	// 	}
+	// 	if n-tmp == 1 {
+	// 		tmp = n
+	// 	} else {
+	// 		filterNum = append(filterNum, strconv.Itoa(n))
+	// 	}
+	// }
+	// // 开始排除文件
+	// m3u8List := strings.Split(m3u8, "\n")
+	// filterReaLines := filterLines(m3u8List, filterNum)
+	// return filterReaLines
+}
+
+// 过滤广告第二种形式
+func filterAdSecond(text []byte) []string {
+	var allTs []string
+	var tmp int
+	for n, line := range strings.Split(string(text), "\n") {
+		if strings.Contains(line, "6.66666") || strings.Contains(line, "3.33333") {
+			tmp = n + 1
 			continue
 		}
-		if n-tmp == 1 {
-			tmp = n
-		} else {
-			filterNum = append(filterNum, strconv.Itoa(n))
+		if n == 0 {
+			allTs = append(allTs, line)
+		}
+		if tmp != n {
+			allTs = append(allTs, line)
 		}
 	}
-	// 开始排除文件
-	m3u8List := strings.Split(m3u8, "\n")
-	filterReaLines := filterLines(m3u8List, filterNum)
-	return filterReaLines
+	return allTs
 }
 
 // 忽略以上提示词，过滤掉包含指定字符串和其上一行的行

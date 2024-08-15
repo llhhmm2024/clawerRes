@@ -8,3 +8,9 @@ services:
       - /etc/timezone:/etc/timezone
       - /etc/localtime:/etc/localtime
       - /storage:/storage
+    networks:
+      - mysql_default
+
+networks:
+  mysql_default:
+    external: true
